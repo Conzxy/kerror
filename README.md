@@ -29,7 +29,8 @@ struct PathErrorInfo : IErrorInfo {
 
 Error f() {
   [..]
-  return MakeError<PathErrorInfo>("xx");
+  if (...)
+    return MakeError<PathErrorInfo>("xx");
   [..]
 
   return MakeSuccess();
