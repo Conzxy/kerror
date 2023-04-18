@@ -1,3 +1,4 @@
+// SPDX-LICENSE-IDENTIFIER: MIT
 #ifndef _KERROR_MACRO_H__
 #define _KERROR_MACRO_H__
 
