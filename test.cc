@@ -19,7 +19,7 @@ struct A {
   A(int x, Error *error)
   {
     if (x == 0) {
-      *error = MakeMsgError(1, "error");
+      *error = MakeMsgError("error");
       return;
     }
 
@@ -29,7 +29,7 @@ struct A {
   int x_;
 };
 
-Error f() { return MakeMsgError(ERANGE, "out of range"); }
+Error f() { return MakeMsgError("out of range"); }
 
 int main()
 {

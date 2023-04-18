@@ -5,7 +5,7 @@
 
 using namespace kerror;
 
-auto kerror::MakeMsgErrorf(error_t error, char const *fmt, ...) -> Error
+auto kerror::MakeMsgErrorf(char const *fmt, ...) -> Error
 {
   char buf[4096];
 
@@ -14,7 +14,7 @@ auto kerror::MakeMsgErrorf(error_t error, char const *fmt, ...) -> Error
   va_start(args, fmt);
   va_end(args);
 
-  return MakeMsgError(error, std::string(buf));
+  return MakeMsgError(std::string(buf));
 }
 
 auto kerror::Panic(char const *msg) -> void

@@ -20,8 +20,6 @@
 
 namespace kerror {
 
-using error_t = int;
-
 struct StringSlice {
  public:
   StringSlice(char const *data) noexcept
@@ -70,16 +68,14 @@ class Error {
    * \Param error The error code you defined or libc provide
    * \Param info Provide some information to debug or trace, etc.
    */
-  explicit Error(error_t error, std::unique_ptr<IErrorInfo> info)
-    : errno_(error)
-    , checked_(false)
+  explicit Error(std::unique_ptr<IErrorInfo> info)
+    : checked_(false)
     , info_(std::move(info))
   {
   }
 
   Error() noexcept
-    : errno_(0)
-    , checked_(false)
+    : checked_(false)
     , info_(nullptr)
   {
   }
@@ -90,8 +86,7 @@ class Error {
    * Make the other be checked to avoid abort
    */
   Error(Error &&other) noexcept
-    : errno_(other.errno_)
-    , checked_(true) // Satisfy the move assign precondition
+    : checked_(true) // Satisfy the move assign precondition
   {
     // invariant: this != &other
     *this = std::move(other);
@@ -102,13 +97,11 @@ class Error {
     if (&other != this) {
       // pre: The error has checked
       AbortIsChecked();
-      errno_ = other.errno_;
       checked_ = false;
       info_ = std::move(other.info_);
 
       // avoid abort
       other.checked_ = true;
-      other.errno_ = 0;
     }
     return *this;
   }
@@ -127,19 +120,13 @@ class Error {
     return !is_success();
   }
 
-  error_t no() const noexcept
-  {
-    checked_ = true;
-    return errno_;
-  }
-
   IErrorInfo *info() const noexcept
   {
     checked_ = true;
     return info_.get();
   }
 
-  bool is_success() const noexcept { return info_ == nullptr || errno_ == 0; }
+  bool is_success() const noexcept { return info_ == nullptr; }
 
  private:
   void AbortIsChecked() noexcept
@@ -152,19 +139,17 @@ class Error {
   }
 
  protected:
-  error_t errno_;
   mutable bool checked_;
   std::unique_ptr<IErrorInfo> info_;
 };
 
 template <typename T, typename... Args>
-Error MakeError(error_t err, Args &&...args)
+Error MakeError(Args &&...args)
 {
-  return Error(err, std::unique_ptr<T>(std::forward<Args>(args)...));
+  return Error(std::unique_ptr<T>(std::forward<Args>(args)...));
 }
 
-inline Error MakeSuccess() noexcept { return Error(0, nullptr); }
-inline Error makeError(error_t error) noexcept { return Error(error, nullptr); }
+inline Error MakeSuccess() noexcept { return Error(nullptr); }
 
 class MsgErrorInfo : public IErrorInfo {
  public:
@@ -192,16 +177,15 @@ class MsgErrorInfo : public IErrorInfo {
   std::string msg_;
 };
 
-Error MakeMsgErrorf(error_t error, char const *fmt, ...);
+Error MakeMsgErrorf(char const *fmt, ...);
 
-inline Error MakeMsgError(error_t error, char const *msg)
+inline Error MakeMsgError(char const *msg)
 {
-  return Error(error, std::unique_ptr<IErrorInfo>(new MsgErrorInfo(msg)));
+  return Error(std::unique_ptr<IErrorInfo>(new MsgErrorInfo(msg)));
 }
-inline Error MakeMsgError(error_t error, std::string msg)
+inline Error MakeMsgError(std::string msg)
 {
-  return Error(error,
-               std::unique_ptr<IErrorInfo>(new MsgErrorInfo(std::move(msg))));
+  return Error(std::unique_ptr<IErrorInfo>(new MsgErrorInfo(std::move(msg))));
 }
 
 namespace detail {
