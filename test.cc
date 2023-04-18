@@ -11,9 +11,9 @@ struct A {
     A a(x, &err);
     if (err) {
       fflush(stdout);
-      return std::move(err);
+      return err;
     }
-    return std::move(a);
+    return a;
   }
 
   A(int x, Error *error)
