@@ -15,7 +15,8 @@
 
 ## Usage
 ### Error
-`Error`类是一个可携带错误上下文信息的类，如果没有携带任何信息，则视为没有错误。
+`Error`类是一个可携带错误上下文信息的类，如果没有携带任何信息，则视为没有错误。  
+它可以用于描述可恢复错误和严重错误，取决于你得到该错误后的行为，比如调用[Panic()](#panic)。  
 ```cpp
 struct PathErrorInfo : IErrorInfo {
   std::string path;
