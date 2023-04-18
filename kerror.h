@@ -337,6 +337,23 @@ struct ErrorOr {
   bool is_error_;
 };
 
+/**
+ * \brief Print a message to stderr and abort program
+ *
+ * Used for handle Fatal error that Cannot be recoverd.
+ *
+ * \Param msg A descrition for fatal error
+ */
+void Panic(char const *msg);
+
+/**
+ * \brief Like Panic() but support C style format string
+ *
+ * \Param fmt A string contains formatted sign
+ * \Param ... Arguments to fill the @p fmt
+ */
+void Panicf(char const *fmt, ...);
+
 } // namespace kerror
 
 #endif

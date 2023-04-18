@@ -16,3 +16,21 @@ auto kerror::MakeMsgErrorf(error_t error, char const *fmt, ...) -> Error
 
   return MakeMsgError(error, std::string(buf));
 }
+
+auto kerror::Panic(char const *msg) -> void
+{
+  fputs(msg, stderr);
+  fflush(stderr);
+  abort();
+}
+
+auto kerror::Panicf(char const *fmt, ...) -> void
+{
+  va_list args;
+  va_start(args, fmt);
+  fprintf(stderr, fmt, args);
+  va_end(args);
+
+  fflush(stderr);
+  abort();
+}
