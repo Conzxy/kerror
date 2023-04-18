@@ -53,7 +53,7 @@ class IErrorInfo {
   IErrorInfo() = default;
   virtual ~IErrorInfo() = default;
 
-  virtual StringSlice GetMessage() const noexcept = 0;
+  virtual std::string GetMessage() const { return {}; }
 };
 
 /**
@@ -149,7 +149,7 @@ Error MakeError(Args &&...args)
   return Error(std::unique_ptr<T>(std::forward<Args>(args)...));
 }
 
-inline Error MakeSuccess() noexcept { return Error(nullptr); }
+KERROR_INLINE Error MakeSuccess() noexcept { return Error(nullptr); }
 
 class MsgErrorInfo : public IErrorInfo {
  public:
@@ -171,7 +171,16 @@ class MsgErrorInfo : public IErrorInfo {
   MsgErrorInfo &operator=(MsgErrorInfo &&) = default;
   MsgErrorInfo &operator=(MsgErrorInfo const &) = default;
 
-  StringSlice GetMessage() const noexcept { return {msg_.data(), msg_.size()}; }
+  /**
+   * \warning
+   *   This function should be called only once.
+   *   The message is moved!
+   * \return
+   */
+  std::string GetMessage() const override
+  {
+    return std::move(const_cast<MsgErrorInfo *>(this)->msg_);
+  }
 
  private:
   std::string msg_;
@@ -179,11 +188,11 @@ class MsgErrorInfo : public IErrorInfo {
 
 Error MakeMsgErrorf(char const *fmt, ...);
 
-inline Error MakeMsgError(char const *msg)
+KERROR_INLINE Error MakeMsgError(char const *msg)
 {
   return Error(std::unique_ptr<IErrorInfo>(new MsgErrorInfo(msg)));
 }
-inline Error MakeMsgError(std::string msg)
+KERROR_INLINE Error MakeMsgError(std::string msg)
 {
   return Error(std::unique_ptr<IErrorInfo>(new MsgErrorInfo(std::move(msg))));
 }
