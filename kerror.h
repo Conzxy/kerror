@@ -221,18 +221,12 @@ struct ErrorOr {
   ErrorOr(Error error)
     : error_(std::move(error))
   {
-    if (!is_error_) {
-      detail::destroy_(obj_);
-    }
     is_error_ = true;
   }
 
   ErrorOr(T obj)
     : obj_(std::move(obj))
   {
-    if (is_error_) {
-      detail::destroy_(error_);
-    }
     is_error_ = false;
   }
 
@@ -255,7 +249,7 @@ struct ErrorOr {
     }
   }
 
-  ErrorOr(ErrorOr &&other) noexcept(noexcept(T(other.obj_)))
+  ErrorOr(ErrorOr &&other) noexcept(noexcept(std::move(other.obj_)))
     : is_error_(other.is_error_)
   {
     if (other.is_error_) {
