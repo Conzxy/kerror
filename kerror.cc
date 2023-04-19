@@ -10,8 +10,8 @@ auto kerror::MakeMsgErrorf(char const *fmt, ...) -> Error
   char buf[4096];
 
   va_list args;
-  vsnprintf(buf, sizeof buf, fmt, args);
   va_start(args, fmt);
+  vsnprintf(buf, sizeof buf, fmt, args);
   va_end(args);
 
   return MakeMsgError(std::string(buf));
