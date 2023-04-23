@@ -315,6 +315,9 @@ struct ErrorOr {
   T *operator->() noexcept { return &obj_; }
   T const *operator->() const noexcept { return &obj_; }
 
+  Error const &error() const noexcept { return error_; }
+  Error &error() noexcept { return error_; }
+
  private:
   union {
     Error error_;
@@ -331,7 +334,7 @@ struct ErrorOr {
  *
  * \Param msg A descrition for fatal error
  */
-void Panic(char const *msg);
+void Panic(char const *msg) noexcept;
 
 /**
  * \brief Like Panic() but support C style format string
@@ -339,7 +342,22 @@ void Panic(char const *msg);
  * \Param fmt A string contains formatted sign
  * \Param ... Arguments to fill the @p fmt
  */
-void Panicf(char const *fmt, ...);
+void Panicf(char const *fmt, ...) noexcept;
+
+void PError(char const *prefix, Error const &err) noexcept;
+
+KERROR_INLINE void PError(Error const &err) noexcept { PError("Reason", err); }
+
+void PErrorSys(char const *prefix, char const *sys_prefix,
+               Error const &err) noexcept;
+
+KERROR_INLINE void PErrorSys(Error const &err) noexcept
+{
+  PErrorSys("Reason", "SysReason", err);
+}
+
+void PSysError(char const *msg) noexcept;
+void PSysErrorf(char const *fmt, ...) noexcept;
 
 } // namespace kerror
 
