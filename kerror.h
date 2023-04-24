@@ -56,6 +56,11 @@ class IErrorInfo {
   virtual std::string GetMessage() const { return {}; }
 };
 
+enum class IsErrorFlag {
+  OFF = 0,
+  ON = 1,
+};
+
 /**
  * Error with error code and information(i.e. typed errno)
  */
@@ -69,14 +74,21 @@ class Error {
    * \Param info Provide some information to debug or trace, etc.
    */
   explicit Error(std::unique_ptr<IErrorInfo> info)
-    : checked_(false)
-    , info_(std::move(info))
+    : info_(std::move(info))
+    , checked_(false)
+    , is_error_(true)
   {
   }
 
-  Error() noexcept
-    : checked_(false)
-    , info_(nullptr)
+  /**
+   * Used for implementing MakeNoInfoError() and MakeSuccess()
+   *
+   * \param is_error
+   */
+  Error(IsErrorFlag is_error = IsErrorFlag::OFF) noexcept
+    : info_(nullptr)
+    , checked_(false)
+    , is_error_(IsErrorFlag::ON == is_error)
   {
   }
 
@@ -87,6 +99,7 @@ class Error {
    */
   Error(Error &&other) noexcept
     : checked_(true) // Satisfy the move assign precondition
+    , is_error_(other.is_error_)
   {
     // invariant: this != &other
     *this = std::move(other);
@@ -98,6 +111,7 @@ class Error {
       // pre: The error has checked
       AbortIsChecked();
       checked_ = false;
+      is_error_ = other.is_error_;
       info_ = std::move(other.info_);
 
       // avoid abort
@@ -117,7 +131,7 @@ class Error {
     // otherwise, caller must call error_no() to check and handle error
     // or call info() to get the information if caller don't handle it.
     checked_ = (is_success());
-    return !is_success();
+    return is_error();
   }
 
   IErrorInfo *info() const noexcept
@@ -126,12 +140,13 @@ class Error {
     return info_.get();
   }
 
-  bool is_success() const noexcept { return info_ == nullptr; }
+  bool is_success() const noexcept { return !is_error_; }
+  bool is_error() const noexcept { return is_error_; }
 
  private:
   void AbortIsChecked() noexcept
   {
-    if (KERROR_UNLIKELY(!checked_ && !is_success())) {
+    if (KERROR_UNLIKELY(!checked_ && is_error())) {
       fprintf(stderr, "The error is don't checked by user");
       fflush(stderr);
       abort();
@@ -139,14 +154,24 @@ class Error {
   }
 
  protected:
-  mutable bool checked_;
   std::unique_ptr<IErrorInfo> info_;
+  mutable bool checked_;
+  bool is_error_;
 };
 
 template <typename T, typename... Args>
 Error MakeError(Args &&...args)
 {
   return Error(std::unique_ptr<T>(std::forward<Args>(args)...));
+}
+
+/**
+ * In some cases, no info error as indicator is useful,
+ * such error can don't bring information.
+ */
+KERROR_INLINE Error MakeNoInfoError() noexcept
+{
+  return Error(IsErrorFlag::ON);
 }
 
 KERROR_INLINE Error MakeSuccess() noexcept { return Error(nullptr); }
