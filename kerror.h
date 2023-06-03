@@ -174,7 +174,7 @@ KERROR_INLINE Error MakeNoInfoError() noexcept
   return Error(IsErrorFlag::ON);
 }
 
-KERROR_INLINE Error MakeSuccess() noexcept { return Error(nullptr); }
+KERROR_INLINE Error MakeSuccess() noexcept { return Error(IsErrorFlag::OFF); }
 
 class MsgErrorInfo : public IErrorInfo {
  public:
