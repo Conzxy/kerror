@@ -264,16 +264,6 @@ struct ErrorOr {
     }
   }
 
-  ErrorOr(ErrorOr const &other)
-    : is_error_(other.is_error_)
-  {
-    if (other.is_error) {
-      new (&obj_) T(other.obj_);
-    } else {
-      new (&error_) Error(other.error_);
-    }
-  }
-
   ErrorOr(ErrorOr &&other) noexcept(noexcept(std::move(other.obj_)))
     : is_error_(other.is_error_)
   {
@@ -282,27 +272,6 @@ struct ErrorOr {
     } else {
       new (&error_) Error(std::move(other.error_));
     }
-  }
-
-  ErrorOr &operator=(ErrorOr const &other)
-  {
-    if (&other == this) return *this;
-
-    if (other.is_error_ == is_error_) {
-      if (is_error_) {
-        error_ = other.error_;
-      } else {
-        obj_ = other.obj_;
-      }
-    } else {
-      is_error_ = !other.is_error_;
-      if (other.is_error_) {
-        error_ = other.error_;
-      } else {
-        obj_ = other.obj;
-      }
-    }
-    return *this;
   }
 
   ErrorOr &operator=(ErrorOr &&other)
@@ -320,7 +289,7 @@ struct ErrorOr {
       if (other.is_error_) {
         error_ = std::move(other.error_);
       } else {
-        obj_ = std::move(other.obj);
+        obj_ = std::move(other.obj_);
       }
     }
     return *this;
